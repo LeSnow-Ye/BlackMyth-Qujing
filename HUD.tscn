@@ -1,0 +1,137 @@
+[gd_scene load_steps=2 format=3 uid="uid://b1ljvjt2gaant"]
+
+[ext_resource type="Script" path="res://scripts/HUD.cs" id="1_78g8m"]
+
+[node name="Hud" type="CanvasLayer"]
+script = ExtResource("1_78g8m")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -265.5
+offset_right = 174.0
+offset_bottom = 265.5
+grow_vertical = 2
+theme_override_constants/margin_left = 72
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 72
+theme_override_constants/margin_bottom = 32
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 8
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Map"
+horizontal_alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="MapSize" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="MapSize" type="Label" parent="MarginContainer/VBoxContainer/MapSize"]
+layout_mode = 2
+text = "Size: "
+
+[node name="SizeSpinBox" type="SpinBox" parent="MarginContainer/VBoxContainer/MapSize"]
+layout_mode = 2
+min_value = 3.0
+value = 3.0
+
+[node name="Seed" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Seed" type="Label" parent="MarginContainer/VBoxContainer/Seed"]
+layout_mode = 2
+text = "Seed: "
+
+[node name="SeedSpinBox" type="SpinBox" parent="MarginContainer/VBoxContainer/Seed"]
+layout_mode = 2
+min_value = -1.0
+max_value = 100000.0
+value = -1.0
+
+[node name="Blues" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Blues: 122"
+
+[node name="Reds" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Reds: 122"
+
+[node name="Example" type="Button" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+focus_mode = 0
+text = "Example"
+
+[node name="Random" type="Button" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+focus_mode = 0
+text = "Random"
+
+[node name="MarginContainer2" type="MarginContainer" parent="."]
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -214.0
+offset_top = -265.5
+offset_bottom = 265.5
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_constants/margin_left = 72
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 72
+theme_override_constants/margin_bottom = 32
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer2"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 8
+
+[node name="HSeparator4" type="HSeparator" parent="MarginContainer2/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="MarginContainer2/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Solve"
+horizontal_alignment = 1
+
+[node name="HSeparator5" type="HSeparator" parent="MarginContainer2/VBoxContainer"]
+layout_mode = 2
+
+[node name="SolveQ2" type="Button" parent="MarginContainer2/VBoxContainer"]
+layout_mode = 2
+focus_mode = 0
+text = "Solve Q2"
+
+[node name="SolveQ3" type="Button" parent="MarginContainer2/VBoxContainer"]
+layout_mode = 2
+focus_mode = 0
+text = "Solve Q3"
+
+[node name="Cost" type="Label" parent="MarginContainer2/VBoxContainer"]
+layout_mode = 2
+text = "Cost: 12"
+
+[node name="Iterations" type="Label" parent="MarginContainer2/VBoxContainer"]
+layout_mode = 2
+text = "Iterations: 122"
+
+[connection signal="value_changed" from="MarginContainer/VBoxContainer/MapSize/SizeSpinBox" to="." method="ChangeMapSizeHandler"]
+[connection signal="value_changed" from="MarginContainer/VBoxContainer/Seed/SeedSpinBox" to="." method="ChangeSeedHandler"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/Example" to="." method="InitExampleMapHandler"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/Random" to="." method="InitRandomMapHandler"]
+[connection signal="pressed" from="MarginContainer2/VBoxContainer/SolveQ2" to="." method="SolveQ2Handler"]
+[connection signal="pressed" from="MarginContainer2/VBoxContainer/SolveQ3" to="." method="SolveQ3Handler"]

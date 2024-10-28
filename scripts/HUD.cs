@@ -28,6 +28,8 @@ public partial class HUD : CanvasLayer
     [Signal]
     public delegate void SolveQ3EventHandler();
 
+    [Export] public AnimationPlayer NoPathPlayer;
+
     public void InitExampleMapHandler()
     {
         EmitSignal(SignalName.InitExampleMap);
@@ -70,5 +72,10 @@ public partial class HUD : CanvasLayer
         GD.Print("Setting label: " + labelName + " to " + text);
         var labelNode = FindChild(labelName) as Label;
         labelNode.Text = labelName + ": " + text;
+    }
+
+    public void PlayNoPathAnimation()
+    {
+        NoPathPlayer.Play("fade_out");
     }
 }

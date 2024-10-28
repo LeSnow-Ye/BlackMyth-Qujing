@@ -9,6 +9,7 @@
 [node name="Camera2D" type="Camera2D" parent="."]
 
 [node name="Map" type="Node2D" parent="."]
+position = Vector2(214, 0)
 script = ExtResource("1_ydfkw")
 TileScene = ExtResource("2_veasa")
 
@@ -16,6 +17,7 @@ TileScene = ExtResource("2_veasa")
 
 [node name="Hud" parent="." instance=ExtResource("2_53r63")]
 
+[connection signal="NoPathFound" from="Map" to="Hud" method="PlayNoPathAnimation"]
 [connection signal="SetLabel" from="Map" to="Hud" method="SetLabel"]
 [connection signal="SetMapSize" from="Map" to="Hud" method="SetMapSize"]
 [connection signal="ChangeMapSize" from="Hud" to="Map" method="ChangeMapSizeHandler"]

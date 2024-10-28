@@ -4,18 +4,33 @@ using Godot;
 public partial class Tile : Node2D
 {
     // event OnTileClicked
-    public delegate void OnTileClicked(string tileName);
+    public delegate void OnTileClicked(Vector2I tilePosition);
 
     [Export] public Area2D Area2D;
     [Export] public Color BoarderColor = Colors.Black;
     [Export] public float BoarderWidth = 2.0f;
 
     [Export] public CollisionShape2D CollisionShape2D;
-    [Export] public Color TileColor = Colors.LightGray;
+    public bool IsTransformed = false;
+    public Vector2I TilePosition;
 
-    public string TileName = "Tile";
     [Export] public Vector2 TileSize = new(10.0f, 10.0f);
+    public TileType TileType = TileType.Wall;
+    public Color TileColor => GetColor(TileType, IsTransformed);
     public event OnTileClicked TileClicked;
+
+    private static Color GetColor(TileType type, bool trans = false)
+    {
+        switch (type)
+        {
+            case TileType.Blue:
+                return trans ? Colors.LightSkyBlue : Colors.DeepSkyBlue;
+            case TileType.Red:
+                return trans ? Colors.Pink : Colors.Tomato;
+            default:
+                return Colors.LightGray;
+        }
+    }
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
@@ -32,8 +47,8 @@ public partial class Tile : Node2D
         if (@event is InputEventMouseButton mouseButtonEvent && mouseButtonEvent.Pressed &&
             mouseButtonEvent.ButtonIndex == MouseButton.Left)
         {
-            GD.Print("Clicked on tile: " + TileName);
-            TileClicked?.Invoke(TileName);
+            GD.Print("Clicked on tile: " + TilePosition);
+            TileClicked?.Invoke(TilePosition);
         }
     }
 

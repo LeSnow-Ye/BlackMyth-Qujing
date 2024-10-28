@@ -5,6 +5,9 @@ using Godot;
 public partial class Map : Node2D
 {
     [Signal]
+    public delegate void NoPathFoundEventHandler();
+
+    [Signal]
     public delegate void SetLabelEventHandler(string labelName, string text);
 
     [Signal]
@@ -13,6 +16,7 @@ public partial class Map : Node2D
     private int _seed = -1;
     private int _size = 8;
     private List<Vector2I> _solutionPath;
+    private Tile[,] _tiles;
     private Vector2 _tileSize;
 
     public Game Game;
@@ -22,7 +26,7 @@ public partial class Map : Node2D
 
     private void InitMap()
     {
-        Reset(Game.Tiles);
+        ResetTiles(Game.Tiles);
         QueueRedraw();
         _solutionPath = null;
 
@@ -64,6 +68,8 @@ public partial class Map : Node2D
 
     private void Solve(bool canTransform = false)
     {
+        if (_solutionPath != null && _solutionPath.Count > 0) InitMap();
+
         var (path, cost, iterations) = Game.FindPath(canTransform);
         GD.Print(string.Join(", ", path.ToArray()));
         GD.Print(path.Count);
@@ -71,6 +77,8 @@ public partial class Map : Node2D
         QueueRedraw();
         EmitSignal(SignalName.SetLabel, HUDLabels.Cost.ToString("F"), cost);
         EmitSignal(SignalName.SetLabel, HUDLabels.Iterations.ToString("F"), iterations);
+        if (cost == -1)
+            EmitSignal(SignalName.NoPathFound);
     }
 
     public void SolveQ2Handler()
@@ -85,27 +93,29 @@ public partial class Map : Node2D
         Solve(true);
     }
 
-    private static Color GetColor(TileType type)
-    {
-        switch (type)
-        {
-            case TileType.Blue:
-                return Colors.DeepSkyBlue;
-            case TileType.Red:
-                return Colors.Tomato;
-            default:
-                return Colors.LightGray;
-        }
-    }
-
     /// <summary>
     ///     根据 <c>TileType</c> 数组重置 <c>Map</c>
     /// </summary>
     /// <param name="tiles"></param>
-    public void Reset(TileType[,] tiles = null)
+    public void ResetTiles(TileType[,] tiles)
     {
         var size = new Vector2I(tiles.GetLength(0), tiles.GetLength(1));
+        var currentSize = new Vector2I(_tiles?.GetLength(0) ?? 0, _tiles?.GetLength(1) ?? 0);
+        if (size == currentSize)
+        {
+            for (var x = 0; x < size.X; x++)
+            for (var y = 0; y < size.Y; y++)
+            {
+                _tiles[x, y].TileType = tiles[x, y];
+                _tiles[x, y].IsTransformed = false;
+                _tiles[x, y].QueueRedraw();
+            }
+
+            return;
+        }
+
         _tileSize = new Vector2(RenderSize.X / size.X, RenderSize.Y / size.Y);
+        _tiles = new Tile[size.X, size.Y];
 
         // Remove all children
         foreach (var child in GetChildren()) child.QueueFree();
@@ -116,31 +126,26 @@ public partial class Map : Node2D
         {
             var tile = TileScene.Instantiate() as Tile;
             tile.Position = GetTilePosition(new Vector2I(x, y));
-            tile.TileColor = GetColor(tiles[x, y]);
+            tile.TileType = tiles[x, y];
             tile.TileSize = _tileSize;
-            tile.TileName = $"Tile{x}-{y}";
+            tile.TilePosition = new Vector2I(x, y);
             tile.TileClicked += OnTileClicked;
+            _tiles[x, y] = tile;
             AddChild(tile);
         }
     }
 
-    private void OnTileClicked(string tilename)
+    private void OnTileClicked(Vector2I tilePosition)
     {
-        var pos = tilename.Substring(4).Split('-').Select(int.Parse).ToArray();
-        Game.Tiles[pos[0], pos[1]] = (TileType)(((int)Game.Tiles[pos[0], pos[1]] + 1) % 3);
+        var previousTile = Game.Tiles[tilePosition[0], tilePosition[1]];
+        var newTile = (TileType)(((int)previousTile + 1) % 3);
+        Game.Tiles[tilePosition[0], tilePosition[1]] = newTile;
         InitMap();
     }
 
     public Vector2 GetTilePosition(Vector2I pos)
     {
         return new Vector2(pos.X + 0.5f, pos.Y + 0.5f) * _tileSize - RenderSize / 2;
-    }
-
-
-    private void OnGameBoardChanged()
-    {
-        GD.Print("Game Board Changed");
-        Reset(Game.Tiles);
     }
 
     // Called when the node enters the scene tree for the first time.
@@ -163,5 +168,18 @@ public partial class Map : Node2D
 
         // Draw path
         DrawPolyline(_solutionPath.Select(p => GetTilePosition(p)).ToArray(), Colors.Green, _tileSize.X / 12.0f);
+
+        // Transformed tiles
+        for (var index = 0; index < _solutionPath.Count; index++)
+        {
+            var pos = _solutionPath[index];
+            if (Game.Tiles[pos.X, pos.Y] == TileType.Wall)
+            {
+                var prePos = _solutionPath[index - 1];
+                _tiles[pos.X, pos.Y].TileType = Game.Tiles[prePos.X, prePos.Y];
+                _tiles[pos.X, pos.Y].IsTransformed = true;
+                _tiles[pos.X, pos.Y].QueueRedraw();
+            }
+        }
     }
 }

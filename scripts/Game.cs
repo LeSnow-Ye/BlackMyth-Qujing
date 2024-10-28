@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Godot;
 
 public enum TileType
@@ -32,23 +33,24 @@ public class AStarNode
 
 public class Game
 {
+    public delegate void GScoreUpdated();
+
     public Vector2I EndPos;
+    public Dictionary<Vector2I, int> GScores;
 
     // -------- Basic properties --------
     public Vector2I Size = new(8, 8);
     public Vector2I StartPos = new(0, 0);
     public TileType[,] Tiles;
+    public event GScoreUpdated OnGScoreUpdated;
 
-    // public delegate void BoardChanged();
-    // public event BoardChanged OnBoardChanged;
-
-    public Game(TileType[,] tiles = null)
+    public void Init(TileType[,] tiles = null)
     {
         Tiles = tiles == null ? ExampleTiles() : tiles;
         Size = new Vector2I(Tiles.GetLength(0), Tiles.GetLength(1));
         EndPos = new Vector2I(Size.X - 1, Size.Y - 1);
 
-        // OnBoardChanged?.Invoke();
+        // OnGScoreUpdated?.Invoke();
     }
 
 
@@ -74,8 +76,8 @@ public class Game
 
         var result = new TileType[8, 8];
         for (var x = 0; x < 8; x++)
-        for (var y = 0; y < 8; y++)
-            result[x, y] = (TileType)tiles[y, x];
+            for (var y = 0; y < 8; y++)
+                result[x, y] = (TileType)tiles[y, x];
 
         return result;
     }
@@ -94,15 +96,15 @@ public class Game
 
         var result = new TileType[size, size];
         for (var x = 0; x < size; x++)
-        for (var y = 0; y < size; y++)
-        {
-            var offset = Mathf.Abs(x - y);
-            var p = offset == 0 ? 1 : density / (1 + offset);
-            if (GD.Randf() > p)
-                result[x, y] = TileType.Wall;
-            else
-                result[x, y] = (TileType)(GD.Randi() % 2 + 1);
-        }
+            for (var y = 0; y < size; y++)
+            {
+                var offset = Mathf.Abs(x - y);
+                var p = offset == 0 ? 1 : density / (1 + offset);
+                if (GD.Randf() > p)
+                    result[x, y] = TileType.Wall;
+                else
+                    result[x, y] = (TileType)(GD.Randi() % 2 + 1);
+            }
 
         return result;
     }
@@ -167,10 +169,10 @@ public class Game
         return path;
     }
 
-    public (List<Vector2I> path, int cost, ulong iterations) FindPath(bool canTransform = false)
+    public async Task<(List<Vector2I> path, int cost, ulong iterations)> FindPath(bool canTransform = false,
+        float interval = -1.0f)
     {
         ulong iterations = 0;
-
         var openSet = new SortedSet<AStarNode>(Comparer<AStarNode>.Create((a, b) =>
         {
             var compare = a.CostF.CompareTo(b.CostF);
@@ -181,7 +183,7 @@ public class Game
         var startNode = new AStarNode(StartPos, null, 0, CostH(StartPos));
         openSet.Add(startNode);
 
-        var gScore = new Dictionary<Vector2I, int> { [StartPos] = 0 };
+        GScores = new Dictionary<Vector2I, int> { [StartPos] = 0 };
 
         while (openSet.Count > 0)
         {
@@ -198,7 +200,7 @@ public class Game
             foreach (var neighbour in GetNeighbours(currentNode.Position, canTransform))
             {
                 iterations++;
-                var tentativeGScore = gScore[currentNode.Position];
+                var tentativeGScore = GScores[currentNode.Position];
                 if (canTransform && Tiles[neighbour.X, neighbour.Y] == TileType.Wall)
                 {
                     tentativeGScore += 2;
@@ -216,13 +218,19 @@ public class Game
 
                 // GD.Print("neighbour: " + neighbour + " tentativeGScore: " + tentativeGScore);
 
-                if (!gScore.ContainsKey(neighbour) || tentativeGScore < gScore[neighbour])
+                if (!GScores.ContainsKey(neighbour) || tentativeGScore < GScores[neighbour])
                 {
-                    gScore[neighbour] = tentativeGScore;
+                    GScores[neighbour] = tentativeGScore;
                     var neighbourNode = new AStarNode(neighbour, currentNode, tentativeGScore, CostH(neighbour));
 
                     if (openSet.All(n => n.Position != neighbour))
                         openSet.Add(neighbourNode);
+
+                    if (interval > 0)
+                    {
+                        OnGScoreUpdated?.Invoke();
+                        await Task.Delay((int)(interval * 1000));
+                    }
                 }
             }
         }

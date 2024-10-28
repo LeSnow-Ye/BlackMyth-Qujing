@@ -11,10 +11,14 @@ public partial class Tile : Node2D
     [Export] public float BoarderWidth = 2.0f;
 
     [Export] public CollisionShape2D CollisionShape2D;
+
+    public int GValue = -1;
     public bool IsTransformed = false;
+    public int MaxGValue = -1;
     public Vector2I TilePosition;
 
     [Export] public Vector2 TileSize = new(10.0f, 10.0f);
+
     public TileType TileType = TileType.Wall;
     public Color TileColor => GetColor(TileType, IsTransformed);
     public event OnTileClicked TileClicked;
@@ -51,12 +55,6 @@ public partial class Tile : Node2D
             TileClicked?.Invoke(TilePosition);
         }
     }
-
-    // Called every frame. 'delta' is the elapsed time since the previous frame.
-    public override void _Process(double delta)
-    {
-    }
-
 
     public override void _Draw()
     {

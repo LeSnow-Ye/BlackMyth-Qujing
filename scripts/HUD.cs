@@ -28,6 +28,9 @@ public partial class HUD : CanvasLayer
     [Signal]
     public delegate void SolveQ3EventHandler();
 
+    [Signal]
+    public delegate void ToggleAnimationEventHandler(bool animation);
+
     [Export] public AnimationPlayer NoPathPlayer;
 
     public void InitExampleMapHandler()
@@ -48,6 +51,11 @@ public partial class HUD : CanvasLayer
     public void ChangeSeedHandler(float seed)
     {
         EmitSignal(SignalName.ChangeSeed, (int)seed);
+    }
+
+    public void ToggleAnimationHandler(bool animation)
+    {
+        EmitSignal(SignalName.ToggleAnimation, animation);
     }
 
     public void SolveQ2Handler()

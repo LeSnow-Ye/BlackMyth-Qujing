@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Godot;
 
 public partial class Map : Node2D
@@ -13,13 +14,17 @@ public partial class Map : Node2D
     [Signal]
     public delegate void SetMapSizeEventHandler(int size);
 
+    private bool _animation;
+
     private int _seed = -1;
     private int _size = 8;
     private List<Vector2I> _solutionPath;
     private Tile[,] _tiles;
     private Vector2 _tileSize;
+    [Export] public Gradient AnimationGradient;
+    [Export] public float AnimationInterval = 0.075f;
 
-    public Game Game;
+    public Game Game = new();
 
     [Export] public Vector2 RenderSize = new(500, 500);
     [Export] public PackedScene TileScene;
@@ -29,6 +34,7 @@ public partial class Map : Node2D
         ResetTiles(Game.Tiles);
         QueueRedraw();
         _solutionPath = null;
+        Game.GScores = new Dictionary<Vector2I, int>();
 
         var reds = Game.Tiles.Cast<TileType>().Count(t => t == TileType.Red);
         var blues = Game.Tiles.Cast<TileType>().Count(t => t == TileType.Blue);
@@ -43,14 +49,14 @@ public partial class Map : Node2D
     public void InitExampleMapHandler()
     {
         GD.Print("Init Example Map");
-        Game = new Game();
+        Game.Init();
         InitMap();
     }
 
     public void InitRandomMapHandler()
     {
         GD.Print("Init Random Map with size " + _size);
-        Game = new Game(Game.RandomTiles(_size, _seed));
+        Game.Init(Game.RandomTiles(_size, _seed));
         InitMap();
     }
 
@@ -66,11 +72,18 @@ public partial class Map : Node2D
         GD.Print("Seed changed to " + seed);
     }
 
-    private void Solve(bool canTransform = false)
+    public void ToggleAnimationHandler(bool animation)
+    {
+        _animation = animation;
+    }
+
+
+    private async Task Solve(bool canTransform = false)
     {
         if (_solutionPath != null && _solutionPath.Count > 0) InitMap();
 
-        var (path, cost, iterations) = Game.FindPath(canTransform);
+        var (path, cost, iterations) = await Game.FindPath(canTransform, _animation ? AnimationInterval : 0);
+
         GD.Print(string.Join(", ", path.ToArray()));
         GD.Print(path.Count);
         _solutionPath = path;
@@ -81,16 +94,16 @@ public partial class Map : Node2D
             EmitSignal(SignalName.NoPathFound);
     }
 
-    public void SolveQ2Handler()
+    public async void SolveQ2Handler()
     {
         GD.Print("Solving Q2...");
-        Solve();
+        await Solve();
     }
 
-    public void SolveQ3Handler()
+    public async void SolveQ3Handler()
     {
         GD.Print("Solving Q3...");
-        Solve(true);
+        await Solve(true);
     }
 
     /// <summary>
@@ -151,15 +164,25 @@ public partial class Map : Node2D
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
-    }
-
-    // Called every frame. 'delta' is the elapsed time since the previous frame.
-    public override void _Process(double delta)
-    {
+        Game.OnGScoreUpdated += () => QueueRedraw();
+        InitExampleMapHandler();
     }
 
     public override void _Draw()
     {
+        // GScores
+        if (_animation && Game.GScores != null && Game.GScores.Count > 0)
+        {
+            var maxGScore = Game.GScores.Max(g => g.Value);
+            foreach (var (pos, gscore) in Game.GScores)
+            {
+                var tilePos = GetTilePosition(pos);
+                var (width, height) = _tileSize / 3.0f;
+                var rect = new Rect2(tilePos.X - width / 2, tilePos.Y - height / 2, width, height);
+                DrawRect(rect, AnimationGradient.Sample(gscore / (float)maxGScore));
+            }
+        }
+
         if (_solutionPath == null || _solutionPath.Count == 0) return;
 
         // Draw head and tail

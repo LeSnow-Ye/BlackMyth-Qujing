@@ -1,8 +1,12 @@
-[gd_scene load_steps=4 format=3 uid="uid://dub5e33w134sc"]
+[gd_scene load_steps=5 format=3 uid="uid://dub5e33w134sc"]
 
 [ext_resource type="Script" path="res://scripts/Map.cs" id="1_ydfkw"]
 [ext_resource type="PackedScene" uid="uid://b1ljvjt2gaant" path="res://HUD.tscn" id="2_53r63"]
 [ext_resource type="PackedScene" uid="uid://coi02ckuxbqce" path="res://tile.tscn" id="2_veasa"]
+
+[sub_resource type="Gradient" id="Gradient_dsd5m"]
+offsets = PackedFloat32Array(0, 0.528822, 1)
+colors = PackedColorArray(0, 0, 0, 1, 0.333813, 0.00128009, 0.728616, 1, 1, 1, 1, 1)
 
 [node name="Main" type="Node"]
 
@@ -12,6 +16,7 @@
 position = Vector2(214, 0)
 script = ExtResource("1_ydfkw")
 TileScene = ExtResource("2_veasa")
+AnimationGradient = SubResource("Gradient_dsd5m")
 
 [node name="Timer" type="Timer" parent="."]
 
@@ -26,3 +31,4 @@ TileScene = ExtResource("2_veasa")
 [connection signal="InitRandomMap" from="Hud" to="Map" method="InitRandomMapHandler"]
 [connection signal="SolveQ2" from="Hud" to="Map" method="SolveQ2Handler"]
 [connection signal="SolveQ3" from="Hud" to="Map" method="SolveQ3Handler"]
+[connection signal="ToggleAnimation" from="Hud" to="Map" method="ToggleAnimationHandler"]

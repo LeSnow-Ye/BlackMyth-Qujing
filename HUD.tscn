@@ -35,6 +35,16 @@ horizontal_alignment = 1
 [node name="HSeparator2" type="HSeparator" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 
+[node name="Example" type="Button" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+focus_mode = 0
+text = "Example"
+
+[node name="Random" type="Button" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+focus_mode = 0
+text = "Random"
+
 [node name="MapSize" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 
@@ -67,16 +77,6 @@ text = "Blues: 122"
 [node name="Reds" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 text = "Reds: 122"
-
-[node name="Example" type="Button" parent="MarginContainer/VBoxContainer"]
-layout_mode = 2
-focus_mode = 0
-text = "Example"
-
-[node name="Random" type="Button" parent="MarginContainer/VBoxContainer"]
-layout_mode = 2
-focus_mode = 0
-text = "Random"
 
 [node name="MarginContainer2" type="MarginContainer" parent="."]
 anchors_preset = 6
@@ -129,9 +129,9 @@ text = "Cost: 12"
 layout_mode = 2
 text = "Iterations: 122"
 
-[connection signal="value_changed" from="MarginContainer/VBoxContainer/MapSize/SizeSpinBox" to="." method="ChangeMapSizeHandler"]
-[connection signal="value_changed" from="MarginContainer/VBoxContainer/Seed/SeedSpinBox" to="." method="ChangeSeedHandler"]
 [connection signal="pressed" from="MarginContainer/VBoxContainer/Example" to="." method="InitExampleMapHandler"]
 [connection signal="pressed" from="MarginContainer/VBoxContainer/Random" to="." method="InitRandomMapHandler"]
+[connection signal="value_changed" from="MarginContainer/VBoxContainer/MapSize/SizeSpinBox" to="." method="ChangeMapSizeHandler"]
+[connection signal="value_changed" from="MarginContainer/VBoxContainer/Seed/SeedSpinBox" to="." method="ChangeSeedHandler"]
 [connection signal="pressed" from="MarginContainer2/VBoxContainer/SolveQ2" to="." method="SolveQ2Handler"]
 [connection signal="pressed" from="MarginContainer2/VBoxContainer/SolveQ3" to="." method="SolveQ3Handler"]

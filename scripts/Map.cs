@@ -14,9 +14,11 @@ public partial class Map : Node2D
     private int _size = 8;
     private List<Vector2I> _solutionPath;
     private Vector2 _tileSize;
+
     public Game Game;
 
     [Export] public Vector2 RenderSize = new(500, 500);
+    [Export] public PackedScene TileScene;
 
     private void InitMap()
     {
@@ -60,10 +62,9 @@ public partial class Map : Node2D
         GD.Print("Seed changed to " + seed);
     }
 
-    public void SolveQ2Handler()
+    private void Solve(bool canTransform = false)
     {
-        GD.Print("Solving Q2...");
-        (var path, var cost, var iterations) = Game.FindPathQ2();
+        var (path, cost, iterations) = Game.FindPath(canTransform);
         GD.Print(string.Join(", ", path.ToArray()));
         GD.Print(path.Count);
         _solutionPath = path;
@@ -72,9 +73,16 @@ public partial class Map : Node2D
         EmitSignal(SignalName.SetLabel, HUDLabels.Iterations.ToString("F"), iterations);
     }
 
+    public void SolveQ2Handler()
+    {
+        GD.Print("Solving Q2...");
+        Solve();
+    }
+
     public void SolveQ3Handler()
     {
-        GD.PushWarning("Not implemented yet.");
+        GD.Print("Solving Q3...");
+        Solve(true);
     }
 
     private static Color GetColor(TileType type)
@@ -106,19 +114,21 @@ public partial class Map : Node2D
         for (var x = 0; x < size.X; x++)
         for (var y = 0; y < size.Y; y++)
         {
-            var tile = new Tile();
+            var tile = TileScene.Instantiate() as Tile;
             tile.Position = GetTilePosition(new Vector2I(x, y));
             tile.TileColor = GetColor(tiles[x, y]);
             tile.TileSize = _tileSize;
-            tile.Name = $"Tile{x}-{y}";
+            tile.TileName = $"Tile{x}-{y}";
+            tile.TileClicked += OnTileClicked;
             AddChild(tile);
         }
     }
 
-    public void SetTile(Vector2I pos, TileType type)
+    private void OnTileClicked(string tilename)
     {
-        var tile = GetNode<Tile>($"Tile{pos.X}-{pos.Y}");
-        tile.TileColor = GetColor(type);
+        var pos = tilename.Substring(4).Split('-').Select(int.Parse).ToArray();
+        Game.Tiles[pos[0], pos[1]] = (TileType)(((int)Game.Tiles[pos[0], pos[1]] + 1) % 3);
+        InitMap();
     }
 
     public Vector2 GetTilePosition(Vector2I pos)

@@ -117,27 +117,39 @@ public class Game
 
     // -------- Pathfinding --------
 
-    private int Heuristic(Vector2I pos)
+    private int CostH(Vector2I pos)
     {
-        return Mathf.Abs(pos.X - EndPos.X) + Mathf.Abs(pos.Y - EndPos.Y);
+        return 0;
+        // return Mathf.Abs(pos.X - EndPos.X) + Mathf.Abs(pos.Y - EndPos.Y); // Heuristic
     }
 
-    private List<Vector2I> GetNeighbours(Vector2I pos)
+    private List<Vector2I> GetPotentialNeighbors(Vector2I pos)
+    {
+        var result = new List<Vector2I>();
+        foreach (var dir in new Vector2I[] { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) })
+        {
+            var npos = pos + dir;
+            if (npos.X >= 0 && npos.X < Size.X && npos.Y >= 0 && npos.Y < Size.Y)
+                result.Add(npos);
+        }
+
+        return result;
+    }
+
+    private List<Vector2I> GetNeighbours(Vector2I pos, bool canTransform = false)
     {
         var neighbours = new List<Vector2I>();
-        var potentialNeighbours = new List<Vector2I>
-        {
-            new(pos.X + 1, pos.Y),
-            new(pos.X - 1, pos.Y),
-            new(pos.X, pos.Y + 1),
-            new(pos.X, pos.Y - 1)
-        };
-
-        foreach (var neighbour in potentialNeighbours)
-            if (neighbour.X >= 0 && neighbour.X < Size.X &&
-                neighbour.Y >= 0 && neighbour.Y < Size.Y &&
-                Tiles[neighbour.X, neighbour.Y] != TileType.Wall)
+        foreach (var neighbour in GetPotentialNeighbors(pos))
+            if (Tiles[neighbour.X, neighbour.Y] != TileType.Wall)
+            {
                 neighbours.Add(neighbour);
+            }
+            else
+            {
+                if (Tiles[pos.X, pos.Y] != TileType.Wall && canTransform &&
+                    GetPotentialNeighbors(neighbour).Any(n => n != pos && Tiles[n.X, n.Y] != TileType.Wall))
+                    neighbours.Add(neighbour);
+            }
 
         return neighbours;
     }
@@ -155,12 +167,7 @@ public class Game
         return path;
     }
 
-    private int CalculateCost(TileType currentTile, TileType neighbourTile)
-    {
-        return currentTile == neighbourTile ? 0 : 1;
-    }
-
-    public (List<Vector2I> path, int cost, ulong iterations) FindPathQ2()
+    public (List<Vector2I> path, int cost, ulong iterations) FindPath(bool canTransform = false)
     {
         ulong iterations = 0;
 
@@ -171,10 +178,9 @@ public class Game
             return compare;
         }));
 
-        var startNode = new AStarNode(StartPos, null, 0, Heuristic(StartPos));
+        var startNode = new AStarNode(StartPos, null, 0, CostH(StartPos));
         openSet.Add(startNode);
 
-        var cameFrom = new Dictionary<Vector2I, AStarNode>();
         var gScore = new Dictionary<Vector2I, int> { [StartPos] = 0 };
 
         while (openSet.Count > 0)
@@ -182,26 +188,40 @@ public class Game
             // GD.Print(string.Join(", ", openSet.Select(n => n.Position + " " + n.CostF).ToArray()));
 
             var currentNode = openSet.Min;
+            var currentTile = Tiles[currentNode.Position.X, currentNode.Position.Y];
+
             openSet.Remove(currentNode);
 
             if (currentNode.Position == EndPos)
                 return (ReconstructPath(currentNode), currentNode.CostG, iterations);
 
-            foreach (var neighbour in GetNeighbours(currentNode.Position))
+            foreach (var neighbour in GetNeighbours(currentNode.Position, canTransform))
             {
                 iterations++;
-                var tentativeGScore = gScore[currentNode.Position] +
-                                      CalculateCost(Tiles[currentNode.Position.X, currentNode.Position.Y],
-                                          Tiles[neighbour.X, neighbour.Y]);
+                var tentativeGScore = gScore[currentNode.Position];
+                if (canTransform && Tiles[neighbour.X, neighbour.Y] == TileType.Wall)
+                {
+                    tentativeGScore += 2;
+                }
+                else if (currentTile == TileType.Wall)
+                {
+                    var cameFromPos = currentNode.Parent.Position;
+                    tentativeGScore += Tiles[cameFromPos.X, cameFromPos.Y] == Tiles[neighbour.X, neighbour.Y] ? 0 : 1;
+                }
+                else
+                {
+                    tentativeGScore += currentTile == Tiles[neighbour.X, neighbour.Y] ? 0 : 1;
+                }
+
+
                 // GD.Print("neighbour: " + neighbour + " tentativeGScore: " + tentativeGScore);
 
                 if (!gScore.ContainsKey(neighbour) || tentativeGScore < gScore[neighbour])
                 {
-                    cameFrom[neighbour] = currentNode;
                     gScore[neighbour] = tentativeGScore;
-                    var neighbourNode = new AStarNode(neighbour, currentNode, tentativeGScore, Heuristic(neighbour));
+                    var neighbourNode = new AStarNode(neighbour, currentNode, tentativeGScore, CostH(neighbour));
 
-                    if (!openSet.Any(n => n.Position == neighbour))
+                    if (openSet.All(n => n.Position != neighbour))
                         openSet.Add(neighbourNode);
                 }
             }

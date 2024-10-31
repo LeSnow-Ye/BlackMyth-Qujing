@@ -33,15 +33,13 @@ public class AStarNode
 
 public class Game
 {
-    public delegate void GScoreUpdated();
-
-    public Vector2I EndPos;
     public Dictionary<Vector2I, int> GScores;
-
-    // -------- Basic properties --------
     public Vector2I Size = new(8, 8);
     public Vector2I StartPos = new(0, 0);
+    public Vector2I EndPos;
     public TileType[,] Tiles;
+
+    public delegate void GScoreUpdated();
     public event GScoreUpdated OnGScoreUpdated;
 
     public void Init(TileType[,] tiles = null)
@@ -49,10 +47,7 @@ public class Game
         Tiles = tiles == null ? ExampleTiles() : tiles;
         Size = new Vector2I(Tiles.GetLength(0), Tiles.GetLength(1));
         EndPos = new Vector2I(Size.X - 1, Size.Y - 1);
-
-        // OnGScoreUpdated?.Invoke();
     }
-
 
     /// <summary>
     ///     示例 Map
@@ -109,14 +104,6 @@ public class Game
         return result;
     }
 
-    public void SetTile(Vector2I pos, TileType type)
-    {
-        if (pos.X < 0 || pos.X >= Size.X || pos.Y < 0 || pos.Y >= Size.Y)
-            return;
-
-        Tiles[pos.X, pos.Y] = type;
-    }
-
     // -------- Pathfinding --------
 
     private int CostH(Vector2I pos)
@@ -169,6 +156,12 @@ public class Game
         return path;
     }
 
+    /// <summary>
+    ///     寻找路径。A* 算法。（本题退化为 Dijkstra 算法）
+    /// </summary>
+    /// <param name="canTransform">是否可以使用“七十二变”</param>
+    /// <param name="interval">动画间隔，单位：秒。</param>
+    /// <returns>路径，代价，迭代次数。</returns>
     public async Task<(List<Vector2I> path, int cost, ulong iterations)> FindPath(bool canTransform = false,
         float interval = -1.0f)
     {

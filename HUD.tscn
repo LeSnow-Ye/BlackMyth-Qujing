@@ -92,6 +92,7 @@ text = "Seed: "
 
 [node name="SeedSpinBox" type="SpinBox" parent="MarginContainer/HBoxContainer/VBoxContainer/Seed"]
 layout_mode = 2
+tooltip_text = "正整数。设置为 -1 启用随机种子。"
 min_value = -1.0
 max_value = 100000.0
 value = -1.0

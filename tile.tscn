@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/Tile.cs" id="1_xqnvf"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_0kdg7"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_8ypug"]
 size = Vector2(100, 100)
 
 [node name="Tile" type="Node2D" node_paths=PackedStringArray("Area2D", "CollisionShape2D")]
@@ -15,4 +15,4 @@ TileSize = Vector2(100, 100)
 [node name="Area2D" type="Area2D" parent="."]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
-shape = SubResource("RectangleShape2D_0kdg7")
+shape = SubResource("RectangleShape2D_8ypug")

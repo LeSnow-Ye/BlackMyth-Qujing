@@ -183,6 +183,13 @@ public partial class Map : Node2D
             }
         }
 
+        // Start and End
+        DrawString(ThemeDB.FallbackFont, GetTilePosition(Game.StartPos) + new Vector2(-0.7f, 0.3f) * _tileSize / 2.0f,
+            "\ud83c\udfef", HorizontalAlignment.Center, fontSize: 32);
+        DrawString(ThemeDB.FallbackFont, GetTilePosition(Game.EndPos) + new Vector2(-0.7f, 0.3f) * _tileSize / 2.0f,
+            "\ud83d\uded5", HorizontalAlignment.Center, fontSize: 32);
+
+
         if (_solutionPath == null || _solutionPath.Count == 0) return;
 
         // Draw head and tail

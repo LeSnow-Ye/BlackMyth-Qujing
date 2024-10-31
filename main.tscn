@@ -5,8 +5,8 @@
 [ext_resource type="PackedScene" uid="uid://coi02ckuxbqce" path="res://tile.tscn" id="2_veasa"]
 
 [sub_resource type="Gradient" id="Gradient_dsd5m"]
-offsets = PackedFloat32Array(0, 0.528822, 1)
-colors = PackedColorArray(0, 0, 0, 1, 0.333813, 0.00128009, 0.728616, 1, 1, 1, 1, 1)
+offsets = PackedFloat32Array(0, 0.528822, 0.927318, 1)
+colors = PackedColorArray(0, 0, 0, 1, 0.333813, 0.00128009, 0.728616, 1, 0.929129, 0.893753, 0.971129, 1, 2.06962e-06, 0.727208, 0.349225, 1)
 
 [node name="Main" type="Node"]
 
@@ -15,8 +15,8 @@ colors = PackedColorArray(0, 0, 0, 1, 0.333813, 0.00128009, 0.728616, 1, 1, 1, 1
 [node name="Map" type="Node2D" parent="."]
 position = Vector2(214, 0)
 script = ExtResource("1_ydfkw")
-TileScene = ExtResource("2_veasa")
 AnimationGradient = SubResource("Gradient_dsd5m")
+TileScene = ExtResource("2_veasa")
 
 [node name="Timer" type="Timer" parent="."]
 

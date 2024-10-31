@@ -76,8 +76,8 @@ public class Game
 
         var result = new TileType[8, 8];
         for (var x = 0; x < 8; x++)
-            for (var y = 0; y < 8; y++)
-                result[x, y] = (TileType)tiles[y, x];
+        for (var y = 0; y < 8; y++)
+            result[x, y] = (TileType)tiles[y, x];
 
         return result;
     }
@@ -96,15 +96,15 @@ public class Game
 
         var result = new TileType[size, size];
         for (var x = 0; x < size; x++)
-            for (var y = 0; y < size; y++)
-            {
-                var offset = Mathf.Abs(x - y);
-                var p = offset == 0 ? 1 : density / (1 + offset);
-                if (GD.Randf() > p)
-                    result[x, y] = TileType.Wall;
-                else
-                    result[x, y] = (TileType)(GD.Randi() % 2 + 1);
-            }
+        for (var y = 0; y < size; y++)
+        {
+            var offset = Mathf.Abs(x - y);
+            var p = offset == 0 ? 1 : density / (1 + offset);
+            if (GD.Randf() > p)
+                result[x, y] = TileType.Wall;
+            else
+                result[x, y] = (TileType)(GD.Randi() % 2 + 1);
+        }
 
         return result;
     }
